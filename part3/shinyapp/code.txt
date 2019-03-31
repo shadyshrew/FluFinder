@@ -1,0 +1,158 @@
+#install.packages("shiny")
+library(shiny)
+
+# Define UI for twitter app ----
+ui <- fluidPage(
+  # App title
+  titlePanel("CDC and Twitter Data Heatmaps"),
+  
+  # Sidebar panel for inputs
+  sidebarLayout(
+    sidebarPanel(
+      fluidRow(
+        column(6,actionButton("cdc", label = "CDC",width="100%")),
+        column(6,actionButton("twitter", label = "Twitter",width="100%"))
+      ),
+      hr(),
+      selectInput("part2",
+        label = "CDC Flu-related Data Plots",
+        choices = list(
+          " " = "",
+          "Clinincal Lab Report 2018-2019"="Plot1_1",
+          "Clinincal Lab Report 2018 " = "Plot1_2",
+          "Clinincal Lab New York Report" = "Plot1_3",
+          "Public Health Lab Report 2018-2019"="Plot2_1",
+          "Public Health Lab Report 2018 "="Plot2_2",
+          "Percentage of Influenza Like Illness"="Plot3",
+          "Pediatric Deaths"="Plot4",
+          "Heat-map of USA"="Plot5")
+      ),
+      hr(),
+      h4("Twitter VS CDC Map", align = "center"),
+      selectInput("keyword", 
+                  label = "Choose Keywords",
+                  choices = list(
+                    " " = "",
+                    "All" = "all_keywords", 
+                    "Flu & Coughing" = "flucough_keywords",
+                    "Multiple" = "subset_keywords")),
+      br(),
+      h5(htmlOutput("caption"))
+    ),
+    mainPanel(
+      fluidRow(column(12, align="center",tags$div(id = 'image')))
+    )
+  )
+)
+
+server <- function(input, output,session) {
+  
+  insertEl <- function(selector,src,id){
+    insertUI(
+      selector = selector,
+      ui = tags$div(
+        tags$img(src=src), 
+        id = id
+      )
+    )
+  }
+  insertEl("#image","all_keywords.png","inserted_images")
+  flag <- reactiveValues(val = 0)
+  
+  observeEvent(input$cdc, {
+    removeUI(selector = 'div#inserted_images')
+    insertEl("#image","cdc.png","inserted_images")
+    updateSelectInput(session, "keyword",selected="")
+    updateSelectInput(session, "part2",selected="")
+  })
+  
+  observeEvent(input$twitter, {
+    removeUI(selector = 'div#inserted_images')
+    insertEl("#image","all_keywords.png","inserted_images")
+    updateSelectInput(session, "keyword",selected="")
+    updateSelectInput(session, "part2",selected="")
+  })
+  
+  observeEvent(input$keyword, {
+    if(input$keyword!=""){
+      if(input$keyword == "subset_keywords"){
+        output$caption <- renderUI({
+          HTML(paste("This heat map has been created for a subset of keywords:",
+                     " ",
+                     "1. fever and headache",
+                     "2. fever and cough",
+                     "3. influenza and virus",
+                     "4. sore throat",
+                     "5. headache and cough",
+                     "6. influenza",
+                     "7. coughing",
+                     "8. flu and epidemic",sep="<br/>"))
+        })
+      }else if(input$keyword == "all_keywords"){
+        output$caption <- renderUI({
+          HTML(paste("This heat map has been created using combination of following primary keywords:",
+                     " ",
+                     "1. flu",
+                     "2. influenza",
+                     "3. pandemic",
+                     "4. fever",
+                     "5. headache",
+                     "6. cough",
+                     "7. sore throat",
+                     "8. body pain",
+                     "9. muscle ache",
+                     "10. weakness",
+                     "11. runny nose",
+                     "12. malaise",
+                     "13. myalgia",
+                     "14. feverish",
+                     "15. respiratory illness",
+                     "16. Antigen",
+                     "17. Antiviral",
+                     "18. influenza virus",
+                     "19. Conjunctivitis",
+                     "20. Hemagglutinin",
+                     "21. Zanamivir",
+                     "22. flu outbreak",
+                     "23. influenza outbreak",
+                     "24. Pneumonia",sep="<br/>"))
+        })
+        
+      }else{
+        output$caption <- renderUI({
+          HTML(paste(""))
+        })
+      }
+      removeUI(selector = 'div#inserted_images')
+      insertUI(
+        selector = '#image',
+        ui = tags$div(
+          tags$img(src=paste(input$keyword,'.png', sep='')), 
+          tags$img(src="cdc.png"),
+          id = "inserted_images"
+        )
+      )
+      updateSelectInput(session, "part2",selected="")
+    }else{
+      output$caption <- renderUI({
+        HTML(paste(""))
+      })
+    }
+  })
+  
+  observeEvent(input$part2, {
+    if(input$part2!=""){
+      updateSelectInput(session, "keyword",selected="")
+      removeUI(selector = 'div#inserted_images')
+      insertUI(
+        selector = '#image',
+        ui = tags$div(
+          tags$img(src=paste(input$part2,'.png', sep='')), 
+          id = "inserted_images"
+        )
+      )
+    }
+  })
+}
+
+shinyApp(ui, server)

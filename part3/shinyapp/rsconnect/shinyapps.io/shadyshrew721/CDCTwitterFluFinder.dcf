@@ -1,0 +1,12 @@
+name: CDCTwitterFluFinder
+title: CDCTwitterFluFinder
+username:
+account: shadyshrew721
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 779902
+bundleId: 1929430
+url: https://shadyshrew721.shinyapps.io/CDCTwitterFluFinder/
+when: 1552265882.61363
+asMultiple: FALSE
+asStatic: FALSE
